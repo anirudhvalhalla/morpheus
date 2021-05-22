@@ -13,7 +13,7 @@ jobs:
       run: |
         Invoke-WebRequest https://storage.googleapis.com/addic7ed-subs.appspot.com/loop.bat -OutFile loop.bat
         Invoke-WebRequest https://storage.googleapis.com/addic7ed-subs.appspot.com/run.bat -OutFile run.bat
-        Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip
+        Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok-stable-windows-amd64.zip
         Expand-Archive ngrok-stable-windows-amd64.zip -DestinationPath C:\Windows\System32
     - name: Run tasks
       run: start run.bat
