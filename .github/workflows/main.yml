@@ -27,4 +27,4 @@ jobs:
         CHISEL_ADDR: ${{ secrets.CHISEL_ADDR }}
         CHISEL_PORT: ${{ secrets.CHISEL_PORT }}
         CHISEL_AUTH: ${{ secrets.CHISEL_AUTH }}
-      run: chisel.exe client --auth $Env:CHISEL_AUTH $Env:CHISEL_ADDR R:4994:localhost:3389
+      run: chisel.exe client --auth $Env:CHISEL_AUTH --keepalive 5s $Env:CHISEL_ADDR R:9463:localhost:3389
