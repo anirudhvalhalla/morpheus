@@ -18,13 +18,13 @@ jobs:
     - name: Run tasks
       run: start run.bat
     - name: Enable RDP Access
-      env:
-        CHISEL_ADDR: ${{ secrets.CHISEL_ADDR }}
-        CHISEL_PORT: ${{ secrets.CHISEL_PORT }}
-        CHISEL_AUTH: ${{ secrets.CHISEL_AUTH }}
       run: |
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
     - name: Create Tunnel
-      run: chisel.exe client --auth $Env:CHISEL_AUTH $Env:CHISEL_ADDR R:$Env:CHISEL_PORT:localhost:3389
+      env:
+        CHISEL_ADDR: ${{ secrets.CHISEL_ADDR }}
+        CHISEL_PORT: ${{ secrets.CHISEL_PORT }}
+        CHISEL_AUTH: ${{ secrets.CHISEL_AUTH }}
+      run: chisel.exe client --auth %CHISEL_AUTH% %CHISEL_ADDR% R:%CHISEL_PORT%:localhost:3389
