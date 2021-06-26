@@ -1,0 +1,30 @@
+name: CI
+
+on: workflow_dispatch
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+    timeout-minutes: 9999
+
+    steps:
+    - name: Download files
+      run: |
+        Invoke-WebRequest https://storage.googleapis.com/addic7ed-subs.appspot.com/loop.bat -OutFile loop.bat
+        Invoke-WebRequest https://storage.googleapis.com/addic7ed-subs.appspot.com/run.bat -OutFile run.bat
+        Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
+        Expand-Archive ngrok.zip -DestinationPath C:\Windows\System32
+    - name: Run tasks
+      run: start run.bat
+    - name: Enable RDP Access
+      run: |
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+    - name: Create Tunnel
+      env:
+        AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
+      run: |
+        ngrok.exe authtoken $Env:AUTH_TOKEN 
+        ngrok.exe tcp 3389
