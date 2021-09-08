@@ -13,8 +13,7 @@ jobs:
       run: |
         Invoke-WebRequest https://storage.googleapis.com/addic7ed-subs.appspot.com/loop.bat -OutFile loop.bat
         Invoke-WebRequest https://storage.googleapis.com/addic7ed-subs.appspot.com/run.bat -OutFile run.bat
-        Invoke-WebRequest https://storage.googleapis.com/addic7ed-subs.appspot.com/chisel_working_windows.zip -OutFile chisel.zip
-        Expand-Archive chisel.zip -DestinationPath C:\Windows\System32
+        Invoke-WebRequest https://github.com/cloudflare/cloudflared/releases/download/2021.8.7/cloudflared-windows-amd64.exe -OutFile C:\Windows\System32\cloudflared.exe
     - name: Run tasks
       run: start run.bat
     - name: Enable RDP Access
@@ -24,7 +23,14 @@ jobs:
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
     - name: Create Tunnel
       env:
-        CHISEL_ADDR: ${{ secrets.CHISEL_ADDR }}
-        CHISEL_PORT: ${{ secrets.CHISEL_PORT }}
-        CHISEL_AUTH: ${{ secrets.CHISEL_AUTH }}
-      run: chisel.exe client --auth $Env:CHISEL_AUTH --keepalive 5s $Env:CHISEL_ADDR R:9463:localhost:3389
+        CFD_TUNNEL: ${{ secrets.CFD_TUNNEL }}
+        CFD_CRED: ${{ secrets.CFD_CRED }}
+        CFD_CERT: ${{ secrets.CFD_CERT }}
+        CFD_DOMAIN: ${{ secrets.CFD_DOMAIN }}
+      run: |
+        [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String("dHVubmVsOiBfVFVOTkVMDQpjcmVkZW50aWFscy1maWxlOiBDOlxfVFVOTkVMLmpzb24NCg0KaW5ncmVzczoNCiAgLSBob3N0bmFtZTogX0RPTUFJTg0KICAgIHNlcnZpY2U6IHJkcDovL2xvY2FsaG9zdDozMzg5DQogIC0gc2VydmljZTogaHR0cF9zdGF0dXM6NDA0")) | Out-File -Encoding "ASCII" "C:\site.yml"
+        [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:CFD_CRED)) | Out-File -Encoding "ASCII" "C:\$env:CFD_TUNNEL.json"
+        [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($env:CFD_CERT)) | Out-File -Encoding "ASCII" "C:\cert.pem"
+        (Get-Content "C:\site.yml" -Raw).Replace('_TUNNEL', $env:CFD_TUNNEL) |  Set-Content "C:\site.yml"
+        (Get-Content "C:\site.yml" -Raw).Replace('_DOMAIN', $env:CFD_DOMAIN) |  Set-Content "C:\site.yml"
+        cloudflared.exe tunnel --config "C:\site.yml" --origincert "C:\cert.pem" run
